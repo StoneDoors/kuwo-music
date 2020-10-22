@@ -1,0 +1,17 @@
+spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  datasource:
+    username: root
+    password: 123456
+    url: jdbc:mysql://stonedoors.cn:3306/myTest?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&tinyInt1isBit=false&useSSL=false
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+server:
+  port: 8016
+
+mybatis:
+  mapper-locations: classpath:mappers/**/*.xml
+
