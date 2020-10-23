@@ -128,7 +128,8 @@
                             }
                         })
                     } else {
-                        _this.$toast(res.msg)
+                        _this.$toast("没有相关结果")
+                        _this.finished=true;
                     }
                     _this.loading = false;
                     _this.isUpLoading=false;

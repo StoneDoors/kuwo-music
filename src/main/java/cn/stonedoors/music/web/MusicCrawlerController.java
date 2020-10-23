@@ -59,7 +59,7 @@ public class MusicCrawlerController {
         ResponseDto responseDto = JSONObject.parseObject(result, ResponseDto.class);
         if(responseDto.getCode()!=200){
             br.setCode(responseDto.getCode());
-            br.setMsg("网站出错了");
+            br.setMsg("没有相关结果");
             return br;
         }
         if(responseDto.getData()!=null){
