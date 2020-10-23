@@ -203,5 +203,10 @@
             }
         }
     });
+    window.onload=function (ev) {
+        if(/Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent)){
+            window.location.href="http://localhost:8016/mobile.html";
+        }
+    }
 </script>
 </html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>八音师</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.0/lib/index.css">
+    <link rel="icon" round
+          href="https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1603343541695&di=ebf7d8eec6f083112460f315d1ac7274&imgtype=0&src=http%3A%2F%2Fku.90sjimg.com%2Felement_origin_min_pic%2F01%2F48%2F13%2F135744150144d8d.jpg"
+          type="image/x-icon">
+</head>
+<body style="font-size: 20px">
+<div id="music" style="text-align:center;vertical-align:middle;width: 100%;" v-cloak>
+    <van-nav-bar id="search_bar" fixed style="height: 70px">
+        <van-image
+                width="30px"
+                height="30px"
+                slot="left"
+                round
+                :src="defaultImg"></van-image>
+        <van-field slot="right" v-model="base_params.content" placeholder="歌曲名/歌手名" @keyup.enter.native="search(1)"
+                   style="border: azure 1px solid;border-radius:50px;">
+            <van-button slot="button" type="default" round icon="search" @click="search(1)"></van-button>
+            <van-button slot="button" type="default" round @click="playMusic"
+                        :icon="play_flag==true?'pause-circle-o':'play-circle-o'" style="margin-left: 5px"></van-button>
+        </van-field>
+    </van-nav-bar>
+
+    <div id="music_list" style="text-align:center;vertical-align:middle; position: absolute;top: 80px;">
+        <van-list
+                v-model="isUpLoading"
+                :finished="finished"
+                finished-text="我是有底线的"
+                @load="search(2)">
+            <div class="van-clearfix">
+                <van-cell v-for="item,index in tableData" :key="item.rid" :label="item.album+'-'+item.artist"
+                          title-class="fontStyle"
+                          :title="item.name" size="large">
+                    <van-image
+                            width="80px"
+                            height="80px"
+                            slot="icon"
+                            :src="item.pic120"></van-image>
+                    <van-col slot="right-icon">
+                        <van-row type="flex" justify="end">
+                            <van-button type="default" round @click="listen(item)" :text="item.playFlag==2?'试听':'暂停'"
+                                        size="small"></van-button>
+                        </van-row>
+                        <van-row type="flex" justify="end">
+                            <van-button type="default" round @click="download(item)" type="text" size="small"
+                                        style="margin-top: 5px;"
+                                        text="下载"></van-button>
+                        </van-row>
+                    </van-col>
+                </van-cell>
+            </div>
+        </van-list>
+    </div>
+    <audio id="player" controls="true" name="media" ref="player" @ended="loopRun"
+           style="height: 36px" hidden>
+        <source :src="music_url" type="audio/mpeg">
+    </audio>
+</div>
+</body>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vant@2.0/lib/vant.min.js"></script>
+<script type="text/javascript">
+    new Vue({
+        el: "#music",
+        data: {
+            base_url: "http://stonedoors.cn:8016/",
+            base_params: {
+                pageNum: 1,
+                pageSize: 10,
+                content: ""
+            },
+            base_headers: {
+                'Content-Type': 'application/json'
+            },
+            tableData: [],
+            loading: false,
+            //播放器
+            music_url: "",
+            //分页
+            total: 0,
+            //默认图
+            defaultImg: "https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1603343541695&di=ebf7d8eec6f083112460f315d1ac7274&imgtype=0&src=http%3A%2F%2Fku.90sjimg.com%2Felement_origin_min_pic%2F01%2F48%2F13%2F135744150144d8d.jpg",
+            like_list: [],
+            play_flag: false,
+            now_rid: "",
+            finished: false,
+            isUpLoading: false
+        },
+        methods: {
+            search(type) {
+                if(this.base_params.content==""){
+                    this.isUpLoading=false;
+                    return;
+                }else{
+                    this.isUpLoading=true;
+                }
+                if (type == 1) {
+                    this.base_params.pageNum = 1;
+                    this.tableData = [];
+                } else if (type == 2) {
+                    this.base_params.pageNum = this.base_params.pageNum + 1
+                }
+                var _this = this;
+                this.loading = true;
+                axios({
+                    url: this.base_url + "music/search",
+                    method: 'get',
+                    withCredentials: true,
+                    params: this.base_params,
+                    headers: this.base_headers
+                }).then(function (response) {
+                    var res = response.data;
+                    if (res.code == 200) {
+                        _this.tableData = _this.tableData.concat(res.data.list);
+                        if(res.data.list.length<_this.base_params.pageSize){
+                            _this.finished=true;
+                        }
+                        _this.total = res.data.total;
+                        _this.tableData.forEach(function (it) {
+                            if (it.pic120 == null) {
+                                it.pic120 = _this.defaultImg;
+                            }
+                        })
+                    } else {
+                        _this.$toast(res.msg)
+                    }
+                    _this.loading = false;
+                    _this.isUpLoading=false;
+                }).catch(function (error) {
+                    _this.loading = false;
+                });
+            },
+            listen(row) {
+                if (row.playFlag == 2) {
+                    this.music_url = row.downUrl;
+                    if (row.rid != this.now_rid) {
+                        this.$refs.player.load();
+                    }
+                    this.$refs.player.play();
+                    this.now_rid = row.rid;
+                    row.playFlag = 1;
+                    this.tableData.forEach(function (it) {
+                        if (it.rid != row.rid) {
+                            it.playFlag = 2;
+                        }
+                    })
+                    this.play_flag = true;
+                    this.like_list.push(row)
+                } else {
+                    this.$refs.player.pause();
+                    row.playFlag = 2;
+                    this.play_flag = false;
+                }
+            },
+            loopRun() {
+                this.play_flag = false;
+                this.tableData.forEach(function (it) {
+                    it.playFlag = 2;
+                })
+                var number = Math.floor(Math.random() * this.tableData.length);
+                this.music_url = this.tableData[number].downUrl;
+                this.$refs.player.load();
+                this.$refs.player.play();
+                this.play_flag = true;
+            },
+            playMusic() {
+                if (this.play_flag == false) {
+                    this.$refs.player.play();
+                    this.play_flag = true;
+                } else {
+                    this.$refs.player.pause();
+                    this.tableData.forEach(function (it) {
+                        it.playFlag = 2;
+                    })
+                    this.play_flag = false;
+                }
+            },
+            download(row) {
+                window.open(row.downUrl, "_blank")
+            }
+        }
+    });
+</script>
+</html>
