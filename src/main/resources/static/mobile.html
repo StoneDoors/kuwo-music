@@ -19,47 +19,48 @@
                 round
                 :src="defaultImg"></van-image>
         <van-field slot="right" v-model="base_params.content" placeholder="歌曲名/歌手名" @keyup.enter.native="search(1)"
-                   style="border: azure 1px solid;border-radius:50px;">
+                   style="width: 90%;border: azure 1px solid;border-radius:50px;margin-left: 50px">
             <van-button slot="button" type="default" round icon="search" @click="search(1)"></van-button>
             <van-button slot="button" type="default" round @click="playMusic"
                         :icon="play_flag==true?'pause-circle-o':'play-circle-o'" style="margin-left: 5px"></van-button>
+            <van-button slot="button" type="default" round icon="arrow" @click="loopRun"
+                        style="margin-left: 5px"></van-button>
+
         </van-field>
     </van-nav-bar>
-
-    <div id="music_list" style="text-align:center;vertical-align:middle; position: absolute;top: 80px;">
+    <div id="music_list" style="text-align:center;vertical-align:middle; position: absolute;top:80px;width: 100%">
         <van-list
                 v-model="isUpLoading"
                 :finished="finished"
                 finished-text="我是有底线的"
                 @load="search(2)">
-            <div class="van-clearfix">
-                <van-cell v-for="item,index in tableData" :key="item.rid" :label="item.album+'-'+item.artist"
-                          title-class="fontStyle"
-                          :title="item.name" size="large">
-                    <van-image
-                            width="80px"
-                            height="80px"
-                            slot="icon"
-                            :src="item.pic120"></van-image>
-                    <van-col slot="right-icon">
-                        <van-row type="flex" justify="end">
-                            <van-button type="default" round @click="listen(item)" :text="item.playFlag==2?'试听':'暂停'"
-                                        size="small"></van-button>
-                        </van-row>
-                        <van-row type="flex" justify="end">
-                            <van-button type="default" round @click="download(item)" type="text" size="small"
-                                        style="margin-top: 5px;"
-                                        text="下载"></van-button>
-                        </van-row>
-                    </van-col>
-                </van-cell>
-            </div>
+            <van-cell v-for="item,index in tableData" :key="item.rid" :label="item.album+' '+item.artist"
+                      title-class="fontStyle"
+                      :title="item.name" size="large">
+                <van-image
+                        width="80px"
+                        height="80px"
+                        slot="icon"
+                        :src="item.pic120"></van-image>
+                <van-col slot="right-icon">
+                    <van-row type="flex" justify="end">
+                        <van-button type="default" round @click="listen(item)" :text="item.playFlag==2?'试听':'暂停'"
+                                    size="small"></van-button>
+                    </van-row>
+                    <van-row type="flex" justify="end">
+                        <van-button type="default" round @click="download(item)" type="text" size="small"
+                                    style="margin-top: 5px;"
+                                    text="下载"></van-button>
+                    </van-row>
+                    <van-row type="flex" justify="end">
+                        <audio :id="item.rid" class="player" controls="true" name="media" hidden @end="loopRun">
+                            <source :src="item.downUrl" type="audio/mpeg">
+                        </audio>
+                    </van-row>
+                </van-col>
+            </van-cell>
         </van-list>
     </div>
-    <audio id="player" controls="true" name="media" ref="player" @ended="loopRun"
-           style="height: 36px" hidden>
-        <source :src="music_url" type="audio/mpeg">
-    </audio>
 </div>
 </body>
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
@@ -80,28 +81,25 @@
             },
             tableData: [],
             loading: false,
-            //播放器
-            music_url: "",
+            now_rid: "",
+            play_flag: false,
             //分页
             total: 0,
             //默认图
             defaultImg: "https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1603343541695&di=ebf7d8eec6f083112460f315d1ac7274&imgtype=0&src=http%3A%2F%2Fku.90sjimg.com%2Felement_origin_min_pic%2F01%2F48%2F13%2F135744150144d8d.jpg",
-            like_list: [],
-            play_flag: false,
-            now_rid: "",
             finished: false,
             isUpLoading: false
         },
         methods: {
             search(type) {
-                if(this.base_params.content==""){
-                    this.isUpLoading=false;
+                if (this.base_params.content == "") {
+                    this.isUpLoading = false;
                     return;
-                }else{
-                    this.isUpLoading=true;
+                } else {
+                    this.isUpLoading = true;
                 }
                 if (type == 1) {
-                    this.finished=false;
+                    this.finished = false;
                     this.base_params.pageNum = 1;
                     this.tableData = [];
                 } else if (type == 2) {
@@ -119,8 +117,8 @@
                     var res = response.data;
                     if (res.code == 200) {
                         _this.tableData = _this.tableData.concat(res.data.list);
-                        if(res.data.list.length<_this.base_params.pageSize){
-                            _this.finished=true;
+                        if (res.data.list.length < _this.base_params.pageSize) {
+                            _this.finished = true;
                         }
                         _this.total = res.data.total;
                         _this.tableData.forEach(function (it) {
@@ -130,22 +128,28 @@
                         })
                     } else {
                         _this.$toast("没有相关结果")
-                        _this.finished=true;
+                        _this.finished = true;
                     }
                     _this.loading = false;
-                    _this.isUpLoading=false;
+                    _this.isUpLoading = false;
                 }).catch(function (error) {
+                    _this.isUpLoading = false;
                     _this.loading = false;
-                    _this.isUpLoading=false;
                 });
             },
             listen(row) {
                 if (row.playFlag == 2) {
-                    this.music_url = row.downUrl;
-                    if (row.rid != this.now_rid) {
-                        this.$refs.player.load();
+                    var players = document.getElementsByClassName("player");
+                    for (var i = 0; i < players.length; i++) {
+                        var value = players[i];
+                        if (value.getAttribute("id") != row.rid) {
+                            value.pause();
+                        }
                     }
-                    this.$refs.player.play();
+                    if (row.rid != this.now_rid) {
+                        document.getElementById(row.rid).load();
+                    }
+                    document.getElementById(row.rid).play();
                     this.now_rid = row.rid;
                     row.playFlag = 1;
                     this.tableData.forEach(function (it) {
@@ -154,39 +158,50 @@
                         }
                     })
                     this.play_flag = true;
-                    this.like_list.push(row)
                 } else {
-                    this.$refs.player.pause();
+                    document.getElementById(row.rid).pause();
                     row.playFlag = 2;
                     this.play_flag = false;
                 }
             },
-            loopRun() {
-                this.play_flag = false;
-                this.tableData.forEach(function (it) {
-                    it.playFlag = 2;
-                })
-                var number = Math.floor(Math.random() * this.tableData.length);
-                this.music_url = this.tableData[number].downUrl;
-                this.$refs.player.load();
-                this.$refs.player.play();
-                this.play_flag = true;
-            },
             playMusic() {
+                if (this.now_rid == "") {
+                    this.now_rid = this.tableData[0].rid;
+                }
+                var _this = this;
                 if (this.play_flag == false) {
-                    this.$refs.player.play();
+                    document.getElementById(this.now_rid).play();
+                    this.tableData.forEach(function (it) {
+                        if (it.rid == _this.now_rid) {
+                            it.playFlag = 1;
+                        }
+                    });
                     this.play_flag = true;
                 } else {
-                    this.$refs.player.pause();
+                    document.getElementById(this.now_rid).pause();
                     this.tableData.forEach(function (it) {
                         it.playFlag = 2;
                     })
                     this.play_flag = false;
                 }
+
             },
             download(row) {
                 window.open(row.downUrl, "_blank")
-            }
+            },
+            loopRun() {
+                this.play_flag = false;
+                document.getElementById(this.now_rid).pause();
+                this.tableData.forEach(function (it) {
+                    it.playFlag = 2;
+                })
+                var number = Math.floor(Math.random() * this.tableData.length);
+                this.now_rid = this.tableData[number].rid;
+                this.tableData[number].playFlag = 1;
+                document.getElementById(this.now_rid).load();
+                document.getElementById(this.now_rid).play();
+                this.play_flag = true;
+            },
         }
     });
 </script>
