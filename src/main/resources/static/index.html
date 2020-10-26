@@ -27,8 +27,8 @@
             effect="dark">
     </el-alert>
     <div id="search_bar">
-        <el-input v-model="base_params.content" size="medium" placeholder="歌曲名/歌手名" style="width: 60%
-;position: center" @keyup.enter.native="search"></el-input>
+        <el-image :src="defaultImg" style="width:40px;height: 40px;border-radius: 50%;position: absolute;left:20%" ></el-image>
+        <el-input v-model="base_params.content" placeholder="歌曲名/歌手名" style="width: 250px;border: none" @keyup.enter.native="search"></el-input>
         <el-button icon="el-icon-search" round @click="search" size="medium"></el-button>
         <el-button :icon="play_flag==true?'el-icon-video-pause':'el-icon-video-play'" round @click="playMusic"
                    size="medium"></el-button>
@@ -37,15 +37,15 @@
         <el-table
                 v-loading="loading"
                 :data="tableData"
-                style="width: 100%;height:830px;overflow: auto">
+                style="left:20%;width: 60%;height:830px;overflow: auto">
             <el-table-column
                     label="序号"
                     type="index"
                     width="50">
             </el-table-column>
-            <el-table-column width="50">
+            <el-table-column width="50" >
                 <template slot-scope="scope">
-                    <el-image :src="scope.row.pic120" style="width:45px;height: 45px" placeholder="defaultImg"/>
+                    <el-image :src="scope.row.pic120" style="width:45px;height: 45px" :placeholder="defaultImg"/>
                 </template>
             </el-table-column>
             <el-table-column
@@ -67,6 +67,7 @@
             </el-table-column>
             <el-table-column
                     prop="songTimeMinutes"
+                    align="center"
                     label="时长">
             </el-table-column>
             <el-table-column
@@ -74,8 +75,7 @@
                     label=""
                     width="100">
                 <template slot-scope="scope">
-                    <el-button @click="listen(scope.row)" type="text" size="small">{{scope.row.playFlag==2?"试听":"暂停"}}
-                    </el-button>
+                    <el-button @click="listen(scope.row)" type="text" size="small">{{scope.row.playFlag==2?"试听":"暂停"}}</el-button>
                     <el-button @click="download(scope.row)" type="text" size="small">下载</el-button>
                 </template>
             </el-table-column>
@@ -198,14 +198,14 @@
                     this.play_flag = false;
                 }
             },
-            download(row) {
-                window.open(row.downUrl, "_blank")
+            download(row){
+                window.open(row.downUrl,"_blank")
             }
         }
     });
     window.onload=function (ev) {
         if(/Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent)){
-            window.location.href="http://localhost:8016/mobile.html";
+            window.location.href="http://www.stonedoors.cn/mobile.html";
         }
     }
 </script>

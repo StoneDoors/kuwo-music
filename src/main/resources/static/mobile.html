@@ -11,6 +11,9 @@
 </head>
 <body style="font-size: 20px">
 <div id="music" style="text-align:center;vertical-align:middle;width: 100%;" v-cloak>
+    <van-dialog  v-model="dialogShow" title="免责声明">
+        <p style="text-align: left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;有关资源均来自网络收集与网友提供，任何涉及商业盈利目的的均不得使用，否则产生的一切后果将由您自己承担!本平台资源仅供个人学习交流、测试使用。 所有内容请在下载后24小时内删除，禁止非法恶意传播，不对任何下载或转载者造成的危害负任何法律责任！也请大家支持、购买正版！ 请不要将本平台的资源用于其他用途，所产生的后果我们概不负责！ 如果本平台存在的内容对您和您的利益产生损害，请立即私信我们，将在最短时间内对其做出删除处理。</p>
+    </van-dialog>
     <van-nav-bar id="search_bar" fixed style="height: 70px">
         <van-image
                 width="30px"
@@ -70,7 +73,7 @@
     new Vue({
         el: "#music",
         data: {
-            base_url: "http://stonedoors.cn:8016/",
+            base_url: "http://localhost:8016/",
             base_params: {
                 pageNum: 1,
                 pageSize: 10,
@@ -88,7 +91,8 @@
             //默认图
             defaultImg: "https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1603343541695&di=ebf7d8eec6f083112460f315d1ac7274&imgtype=0&src=http%3A%2F%2Fku.90sjimg.com%2Felement_origin_min_pic%2F01%2F48%2F13%2F135744150144d8d.jpg",
             finished: false,
-            isUpLoading: false
+            isUpLoading: false,
+            dialogShow:true
         },
         methods: {
             search(type) {
