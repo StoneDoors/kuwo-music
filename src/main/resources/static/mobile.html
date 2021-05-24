@@ -111,6 +111,7 @@
                 }
                 var _this = this;
                 this.loading = true;
+                this.play_flag=false;
                 axios({
                     url: this.base_url + "music/search",
                     method: 'get',
